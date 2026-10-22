@@ -1,4 +1,4 @@
-# Trending Posts Leaderboard — Scaffold
+# Trending Posts Leaderboard
 
 Build a trending leaderboard backed by a Redis **sorted set** (ranking) + a **hash per post** (metadata), reading the whole board in **one pipelined round trip**.
 
@@ -6,8 +6,8 @@ Build a trending leaderboard backed by a Redis **sorted set** (ranking) + a **ha
 
 ```bash
 npm install
-cp .env.example .env       # local Redis works out of the box
-docker start redis-m4      # make sure Redis is running (from LU 4.0.1)
+cp .env.example .env
+docker start redis-m4      # or start the Redis service configured by REDIS_URL
 ```
 
 ## What to implement
@@ -23,6 +23,8 @@ npm test        # upvotes post:50 fifty times, asserts it reaches the top 10
 ```
 
 Expected: the test prints the top 10 and ends with `PASS ✅`.
+
+`seed.js` batches the sorted-set reset and all 200 metadata/ranking writes in one pipeline. `getTop(n)` performs one `ZREVRANGE` followed by a single pipeline containing all `HGETALL` metadata reads. Pipelining reduces round trips; it is not a transaction and does not make commands atomic.
 
 ## Submit
 
