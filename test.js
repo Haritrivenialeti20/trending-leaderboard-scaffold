@@ -19,12 +19,17 @@ async function run() {
   console.log("Top 10:");
   top.forEach((p, i) => console.log(`  #${i + 1}  ${p.id}  score=${p.score}  ${p.title} (${p.author})`));
 
-  const targetPost = top.find((p) => p.id === target);
-  const madeIt = Boolean(targetPost && targetPost.title === "Post number 50" && targetPost.author === "@user50");
-  console.log(madeIt ? `\nPASS ✅  ${target} reached the top 10` : `\nFAIL ❌  ${target} is NOT in the top 10`);
-
-  redis.disconnect();
-  process.exit(madeIt ? 0 : 1);
+  const targetPost = top.find((post) => post.id === target);
+  if (!targetPost) throw new Error(`${target} is NOT in the top 10`);
+  if (targetPost.title !== "Post number 50" || targetPost.author !== "@user50") {
+    throw new Error(`${target} is missing its metadata`);
+  }
+  console.log(`\nPASS ✅  ${target} reached the top 10 with metadata`);
 }
 
-run();
+run()
+  .catch((error) => {
+    console.error(`\nFAIL ❌  ${error.message}`);
+    process.exitCode = 1;
+  })
+  .finally(() => redis.disconnect());
